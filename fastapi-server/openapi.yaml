@@ -1,0 +1,445 @@
+openapi: 3.0.3
+info:
+  description: |
+    An API to manage transportation payload with the the following operations:
+    * List all Payloads
+    * Create a Payload (aka Route)
+    * Get Payload Estimate
+    * Update Payload with Actual
+    * Delete a Payload
+
+    Features:
+    * Result pagination
+    * Security (Auth'n / Auth'z)
+
+    We will use a simple **Payload** resource representation with the following properties:
+    * ID (Route, aka Flight)
+    * Passengers (count)
+    * Baggage (weight)
+    * Cargo (weight)
+    * EstimateDateTimestamp (optional)
+    * LastUpdateTimestamp (optional)
+  title: Payload API
+  version: v1.0.0
+servers:
+- description: Localhost environment
+  url: http://localhost:8080/payload-api/v1.0.0
+tags:
+- description: Payload Estimator
+  name: Payloads
+paths:
+  /payloads:
+    get:
+      description: Use this endpoint to browse all payloads in the estimator.
+      operationId: getAllPayloads
+      parameters:
+      - explode: true
+        in: query
+        name: offset
+        required: false
+        schema:
+          default: 0
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: limit
+        required: false
+        schema:
+          default: 5
+          type: integer
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/getAllPayloads_200_response"
+          description: Paginated array of payloads
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: UnauthorizedResponse. Authentication required
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: You do not have enough rights to perform this operation
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Client error
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Unexpected error
+      summary: List all payloads
+      tags:
+      - Payloads
+    post:
+      description: Use this endpoint to add a new route to the estimator
+      operationId: createPayload
+      requestBody:
+        $ref: "#/components/requestBodies/PayloadRequest"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payload"
+          description: Payload Details
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: UnauthorizedResponse. Authentication required
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: You do not have enough rights to perform this operation
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Client error
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Unexpected error
+      summary: Create a new payload
+      tags:
+      - Payloads
+  /payloads/{id}:
+    delete:
+      description: Use this endpoint to remove a payload from the estimator.
+      operationId: deletePayload
+      parameters:
+      - example: 1001
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "204":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payload"
+          description: Payload Details
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: UnauthorizedResponse. Authentication required
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: You do not have enough rights to perform this operation
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Resource not found
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Client error
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Unexpected error
+      summary: Delete payload
+      tags:
+      - Payloads
+    get:
+      description: Use this endpoint to get the estimate for a specific route.
+      operationId: getPayload
+      parameters:
+      - example: 1001
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payload"
+          description: Payload Details
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: UnauthorizedResponse. Authentication required
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: You do not have enough rights to perform this operation
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Resource not found
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Client error
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Unexpected error
+      summary: Retrieve a payload by ID
+      tags:
+      - Payloads
+    put:
+      description: Use this endpoint to update the payload with actuals.
+      operationId: updatePayload
+      parameters:
+      - example: 1001
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+        style: simple
+      requestBody:
+        $ref: "#/components/requestBodies/PayloadRequest"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payload"
+          description: Payload Details
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: UnauthorizedResponse. Authentication required
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: You do not have enough rights to perform this operation
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Resource not found
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Client error
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Unexpected error
+      summary: Update payload with actuals.
+      tags:
+      - Payloads
+components:
+  requestBodies:
+    PayloadRequest:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Payload"
+      description: Payload Details
+  responses:
+    PayloadResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Payload"
+      description: Payload Details
+    PayloadArrayResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/getAllPayloads_200_response"
+      description: Paginated array of payloads
+    ClientErrorResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Client error
+    UnexpectedErrorResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Unexpected error
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Resource not found
+    UnauthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: UnauthorizedResponse. Authentication required
+    ForbiddenResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: You do not have enough rights to perform this operation
+  schemas:
+    PaginatedResult:
+      properties:
+        offset:
+          description: Page offset
+          example: 10
+          title: offset
+          type: integer
+        limit:
+          description: Page size limit
+          example: 5
+          title: limit
+          type: integer
+        total:
+          description: Total number of records across all pages
+          example: 1500
+          title: total
+          type: integer
+        data:
+          items: {}
+          title: data
+          type: array
+      title: PaginatedResult
+      type: object
+    Payload:
+      example:
+        passengers: 155
+        estimate4Timestamp: 2023-01-01T10:10:10Z
+        baggage: 2510.5
+        lastUpdatedOn: 2023-01-01T10:10:10Z
+        id: 1001
+        cargo: 1220.2
+      properties:
+        id:
+          description: Payload identifier
+          example: 1001
+          readOnly: false
+          title: id
+          type: integer
+        passengers:
+          description: Passenger count.
+          example: 155
+          title: passengers
+          type: integer
+        baggage:
+          description: Weight of passengers baggage.
+          example: 2510.5
+          format: double
+          title: baggage
+          type: number
+        cargo:
+          description: Weight of cargo.
+          example: 1220.2
+          format: double
+          title: cargo
+          type: number
+        estimate4Timestamp:
+          description: The time and date this estimate is for.
+          example: 2023-01-01T10:10:10Z
+          format: date-time
+          readOnly: true
+          title: estimate4Timestamp
+          type: string
+        lastUpdatedOn:
+          description: Timestamp of last estimate update
+          example: 2023-01-01T10:10:10Z
+          format: date-time
+          readOnly: true
+          title: lastUpdatedOn
+          type: string
+      title: Payload
+      type: object
+    PayloadArray:
+      items:
+        $ref: "#/components/schemas/Payload"
+      type: array
+    Error:
+      example:
+        message: Error details
+      properties:
+        message:
+          example: Error details
+          title: message
+          type: string
+      title: Error
+      type: object
+    getAllPayloads_200_response:
+      allOf:
+      - $ref: "#/components/schemas/PaginatedResult"
+      - properties:
+          data:
+            $ref: "#/components/schemas/PayloadArray"
+        type: object
+      example:
+        total: 1500
+        offset: 10
+        data:
+        - passengers: 155
+          estimate4Timestamp: 2023-01-01T10:10:10Z
+          baggage: 2510.5
+          lastUpdatedOn: 2023-01-01T10:10:10Z
+          id: 1001
+          cargo: 1220.2
+        - passengers: 155
+          estimate4Timestamp: 2023-01-01T10:10:10Z
+          baggage: 2510.5
+          lastUpdatedOn: 2023-01-01T10:10:10Z
+          id: 1001
+          cargo: 1220.2
+        limit: 5
+      title: getAllPayloads_200_response

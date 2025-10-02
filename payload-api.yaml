@@ -1,0 +1,300 @@
+openapi: 3.0.3
+info:
+  title: Payload API
+  version: v1.0.0
+  description: |
+    An API to manage transportation payload with the the following operations:
+    * List all Payloads
+    * Create a Payload (aka Route)
+    * Get Payload Estimate
+    * Update Payload with Actual
+    * Delete a Payload
+    
+    Features:
+    * Result pagination
+    * Security (Auth'n / Auth'z)
+    
+    We will use a simple **Payload** resource representation with the following properties:
+    * ID (Route, aka Flight)
+    * Passengers (count)
+    * Baggage (weight)
+    * Cargo (weight)
+    * EstimateDateTimestamp (optional)
+    * LastUpdateTimestamp (optional)
+
+# security:
+#   - OAuthClientCredentials:
+#       - payloads
+
+servers:
+  # - url: https://marcolenzo.eu/payloads-api/v1
+  #   description: Payloadion environment
+  - url: http://localhost:8080/payload-api/v1.0.0
+    description: Localhost environment
+
+tags:
+  - name: Payloads
+    description: Payload Estimator
+    # externalDocs:
+    #   url: https://marcolenzo.eu/docs/payloads
+paths:
+  /payloads:
+    get:
+      parameters:
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 0
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 5
+      tags:
+        - Payloads
+      summary: List all payloads
+      description: Use this endpoint to browse all payloads in the estimator.
+      operationId: getAllPayloads
+      responses:
+        '200':
+          $ref: "#/components/responses/PayloadArrayResponse"
+        '401':
+          $ref: "#/components/responses/UnauthorizedResponse"
+        '403':
+          $ref: "#/components/responses/ForbiddenResponse"
+        '4XX':
+          $ref: "#/components/responses/ClientErrorResponse"
+        default:
+          $ref: "#/components/responses/UnexpectedErrorResponse"
+    post:
+      tags:
+        - Payloads
+      summary: Create a new payload
+      description: Use this endpoint to add a new route to the estimator
+      operationId: createPayload
+      requestBody:
+        $ref: "#/components/requestBodies/PayloadRequest"
+      responses:
+        '200':
+          $ref: '#/components/responses/PayloadResponse'
+        '401':
+          $ref: "#/components/responses/UnauthorizedResponse"
+        '403':
+          $ref: "#/components/responses/ForbiddenResponse"
+        '4XX':
+          $ref: "#/components/responses/ClientErrorResponse"
+        default:
+          $ref: "#/components/responses/UnexpectedErrorResponse"
+  /payloads/{id}:
+    parameters:
+      - name: id
+        in: path
+        schema:
+          type: integer
+        required: true
+        example: 1001
+
+    get:
+      tags:
+        - Payloads
+      summary: Retrieve a payload by ID
+      description: Use this endpoint to get the estimate for a specific route.
+      operationId: getPayload
+      responses:
+        '200':
+          $ref: "#/components/responses/PayloadResponse"
+        '401':
+          $ref: "#/components/responses/UnauthorizedResponse"
+        '403':
+          $ref: "#/components/responses/ForbiddenResponse"
+        '404':
+          $ref: "#/components/responses/NotFoundResponse"
+        '4XX':
+          $ref: "#/components/responses/ClientErrorResponse"
+        default:
+          $ref: "#/components/responses/UnexpectedErrorResponse" 
+    
+    put:
+      tags:
+        - Payloads
+      summary: Update payload with actuals.
+      description: Use this endpoint to update the payload with actuals.
+      operationId: updatePayload
+      requestBody:
+        $ref: "#/components/requestBodies/PayloadRequest"
+      responses:
+        '200':
+          $ref: "#/components/responses/PayloadResponse"
+        '401':
+          $ref: "#/components/responses/UnauthorizedResponse"
+        '403':
+          $ref: "#/components/responses/ForbiddenResponse"
+        '404':
+          $ref: "#/components/responses/NotFoundResponse"
+        '4XX':
+          $ref: "#/components/responses/ClientErrorResponse"
+        default:
+          $ref: "#/components/responses/UnexpectedErrorResponse"
+    
+    delete:
+      tags:
+        - Payloads
+      summary: Delete payload
+      description: Use this endpoint to remove a payload from the estimator.
+      operationId: deletePayload
+      responses:
+        '204':
+          description: Deleted
+          $ref: "#/components/responses/PayloadResponse"
+        '401':
+          $ref: "#/components/responses/UnauthorizedResponse"
+        '403':
+          $ref: "#/components/responses/ForbiddenResponse"
+        '404':
+          $ref: "#/components/responses/NotFoundResponse"
+        '4XX':
+          $ref: "#/components/responses/ClientErrorResponse"
+        default:
+          $ref: "#/components/responses/UnexpectedErrorResponse" 
+
+components:
+  # securitySchemes:
+  #   OAuthClientCredentials:
+  #     type: oauth2
+  #     flows:
+  #       clientCredentials:
+  #         tokenUrl: https://marcolenzo.eu/auth/token
+  #         scopes:
+  #           payloads: Grants full admin access
+
+  requestBodies:
+    PayloadRequest:
+      description: Payload Details
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Payload"
+
+  responses:
+    PayloadResponse:
+      description: Payload Details
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Payload"
+
+    PayloadArrayResponse:
+      description: Paginated array of payloads
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/PaginatedResult"
+              - type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/PayloadArray"
+
+    ClientErrorResponse:
+      description: Client error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    
+    UnexpectedErrorResponse:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+    NotFoundResponse:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    
+    UnauthorizedResponse:
+      description: UnauthorizedResponse. Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    
+    ForbiddenResponse:
+      description: You do not have enough rights to perform this operation
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+  schemas:
+    PaginatedResult:
+      type: object
+      properties:
+        offset: 
+          type: integer
+          description: Page offset
+          example: 10
+        limit:
+          type: integer
+          description: Page size limit
+          example: 5
+        total:
+          type: integer
+          description: Total number of records across all pages
+          example: 1500
+        data:
+          type: array
+          items: {}
+
+    Payload:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Payload identifier
+          example: 1001
+          readOnly: false
+        passengers:
+          type: integer
+          description: Passenger count.
+          example: 155
+        baggage:
+          type: number
+          description: Weight of passengers baggage.
+          format: double
+          example: 2510.5
+        cargo:
+          type: number
+          description: Weight of cargo.
+          format: double
+          example: 1220.2
+        estimate4Timestamp:
+          type: string
+          description: The time and date this estimate is for.
+          format: date-time
+          example: 2023-01-01T10:10:10Z
+          readOnly: true
+        lastUpdatedOn:
+          type: string
+          description: Timestamp of last estimate update
+          format: date-time
+          example: 2023-01-01T10:10:10Z
+          readOnly: true
+    PayloadArray:
+      type: array
+      items:
+        $ref: "#/components/schemas/Payload"
+
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Error details"
