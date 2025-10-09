@@ -16,10 +16,34 @@ To run the server, please execute the following from the root directory:
 
 ```bash
 pip3 install -r requirements.txt
-PYTHONPATH=src uvicorn openapi_server.main:app --host 0.0.0.0 --port 8080
+PYTHONPATH=src uvicorn openapi_server.main:app --host 0.0.0.0 --port 8080 --reload
 ```
 
 and open your browser at `http://localhost:8080/docs/` to see the docs.
+
+## Postgres (optional) and DB schema
+
+This project includes an optional Postgres-backed implementation for the Payloads API. To use it:
+
+1. Start a Postgres instance (example using Docker):
+
+```bash
+docker run --name payloads-db -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres:15
+```
+
+2. Create the database and apply schema:
+
+```bash
+docker exec -it payloads-db psql -U postgres -c "CREATE DATABASE payloads_db;"
+docker cp sql/schema.sql payloads-db:/schema.sql
+docker exec -it payloads-db psql -U postgres -d payloads_db -f /schema.sql
+```
+
+3. Start the app (the implementation reads DATABASE_URL env var):
+
+```bash
+DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/payloads_db PYTHONPATH=src uvicorn openapi_server.main:app --reload
+```
 
 ## Running with Docker
 

@@ -3,7 +3,7 @@
 from typing import ClassVar, Dict, List, Tuple  # noqa: F401
 
 from pydantic import Field, StrictInt
-from typing import Optional
+from typing import Any, Optional
 from typing_extensions import Annotated
 from openapi_server.models.error import Error
 from openapi_server.models.get_all_payloads200_response import GetAllPayloads200Response
@@ -27,7 +27,7 @@ class BasePayloadsApi:
     async def delete_payload(
         self,
         id: StrictInt,
-    ) -> Payload:
+    ) -> None:
         """Use this endpoint to remove a payload from the estimator."""
         ...
 

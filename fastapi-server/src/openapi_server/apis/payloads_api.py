@@ -24,7 +24,7 @@ from fastapi import (  # noqa: F401
 
 from openapi_server.models.extra_models import TokenModel  # noqa: F401
 from pydantic import Field, StrictInt
-from typing import Optional
+from typing import Any, Optional
 from typing_extensions import Annotated
 from openapi_server.models.error import Error
 from openapi_server.models.get_all_payloads200_response import GetAllPayloads200Response
@@ -32,6 +32,7 @@ from openapi_server.models.payload import Payload
 
 
 router = APIRouter()
+flights = []
 
 ns_pkg = openapi_server.impl
 for _, name, _ in pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + "."):
@@ -44,7 +45,7 @@ for _, name, _ in pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + "."):
         200: {"model": Payload, "description": "Payload Details"},
         401: {"model": Error, "description": "UnauthorizedResponse. Authentication required"},
         403: {"model": Error, "description": "You do not have enough rights to perform this operation"},
-        4XX: {"model": Error, "description": "Client error"},
+        400: {"model": Error, "description": "Client error"},
         "default": {"model": Error, "description": "Unexpected error"},
     },
     tags=["Payloads"],
@@ -63,11 +64,11 @@ async def create_payload(
 @router.delete(
     "/payloads/{id}",
     responses={
-        204: {"model": Payload, "description": "Payload Details"},
+        204: {"description": "Deleted successfully."},
         401: {"model": Error, "description": "UnauthorizedResponse. Authentication required"},
         403: {"model": Error, "description": "You do not have enough rights to perform this operation"},
         404: {"model": Error, "description": "Resource not found"},
-        4XX: {"model": Error, "description": "Client error"},
+        400: {"model": Error, "description": "Client error"},
         "default": {"model": Error, "description": "Unexpected error"},
     },
     tags=["Payloads"],
@@ -76,7 +77,7 @@ async def create_payload(
 )
 async def delete_payload(
     id: StrictInt = Path(..., description=""),
-) -> Payload:
+) -> None:
     """Use this endpoint to remove a payload from the estimator."""
     if not BasePayloadsApi.subclasses:
         raise HTTPException(status_code=500, detail="Not implemented")
@@ -89,7 +90,7 @@ async def delete_payload(
         200: {"model": GetAllPayloads200Response, "description": "Paginated array of payloads"},
         401: {"model": Error, "description": "UnauthorizedResponse. Authentication required"},
         403: {"model": Error, "description": "You do not have enough rights to perform this operation"},
-        4XX: {"model": Error, "description": "Client error"},
+        400: {"model": Error, "description": "Client error"},
         "default": {"model": Error, "description": "Unexpected error"},
     },
     tags=["Payloads"],
@@ -113,7 +114,7 @@ async def get_all_payloads(
         401: {"model": Error, "description": "UnauthorizedResponse. Authentication required"},
         403: {"model": Error, "description": "You do not have enough rights to perform this operation"},
         404: {"model": Error, "description": "Resource not found"},
-        4XX: {"model": Error, "description": "Client error"},
+        400: {"model": Error, "description": "Client error"},
         "default": {"model": Error, "description": "Unexpected error"},
     },
     tags=["Payloads"],
@@ -136,7 +137,7 @@ async def get_payload(
         401: {"model": Error, "description": "UnauthorizedResponse. Authentication required"},
         403: {"model": Error, "description": "You do not have enough rights to perform this operation"},
         404: {"model": Error, "description": "Resource not found"},
-        4XX: {"model": Error, "description": "Client error"},
+        400: {"model": Error, "description": "Client error"},
         "default": {"model": Error, "description": "Unexpected error"},
     },
     tags=["Payloads"],

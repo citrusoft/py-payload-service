@@ -68,7 +68,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
           description: You do not have enough rights to perform this operation
-        "4XX":
+        "400":
           content:
             application/json:
               schema:
@@ -107,7 +107,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
           description: You do not have enough rights to perform this operation
-        "4XX":
+        "400":
           content:
             application/json:
               schema:
@@ -137,11 +137,7 @@ paths:
         style: simple
       responses:
         "204":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Payload"
-          description: Payload Details
+          description: Deleted successfully.
         "401":
           content:
             application/json:
@@ -160,7 +156,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
           description: Resource not found
-        "4XX":
+        "400":
           content:
             application/json:
               schema:
@@ -212,7 +208,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
           description: Resource not found
-        "4XX":
+        "400":
           content:
             application/json:
               schema:
@@ -266,7 +262,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
           description: Resource not found
-        "4XX":
+        "400":
           content:
             application/json:
               schema:
