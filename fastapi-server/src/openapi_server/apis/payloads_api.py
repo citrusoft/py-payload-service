@@ -23,7 +23,7 @@ from fastapi import (  # noqa: F401
 )
 
 from openapi_server.models.extra_models import TokenModel  # noqa: F401
-from pydantic import Field, StrictInt
+from pydantic import Field
 from typing import Any, Optional
 from typing_extensions import Annotated
 from openapi_server.models.error import Error
@@ -75,7 +75,7 @@ async def create_payload(
     response_model_by_alias=True,
 )
 async def delete_payload(
-    id: StrictInt = Path(..., description=""),
+    id: int = Path(..., description=""),
 ) -> None:
     """Use this endpoint to remove a payload from the estimator."""
     if not BasePayloadsApi.subclasses:
@@ -97,8 +97,8 @@ async def delete_payload(
     response_model_by_alias=True,
 )
 async def get_all_payloads(
-    offset: Optional[StrictInt] = Query(0, description="", alias="offset"),
-    limit: Optional[StrictInt] = Query(5, description="", alias="limit"),
+    offset: Optional[int] = Query(0, description="", alias="offset"),
+    limit: Optional[int] = Query(5, description="", alias="limit"),
 ) -> GetAllPayloads200Response:
     """Use this endpoint to browse all payloads in the estimator."""
     if not BasePayloadsApi.subclasses:
@@ -121,7 +121,7 @@ async def get_all_payloads(
     response_model_by_alias=True,
 )
 async def get_payload(
-    id: StrictInt = Path(..., description=""),
+    id: int = Path(..., description=""),
 ) -> Payload:
     """Use this endpoint to get the estimate for a specific route."""
     if not BasePayloadsApi.subclasses:
@@ -144,7 +144,7 @@ async def get_payload(
     response_model_by_alias=True,
 )
 async def update_payload(
-    id: StrictInt = Path(..., description=""),
+    id: int = Path(..., description=""),
     payload: Annotated[Optional[Payload], Field(description="Payload Details")] = Body(None, description="Payload Details"),
 ) -> Payload:
     """Use this endpoint to update the payload with actuals."""

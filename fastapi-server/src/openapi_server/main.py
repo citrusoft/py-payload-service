@@ -15,11 +15,27 @@
 from fastapi import FastAPI
 
 from openapi_server.apis.payloads_api import router as PayloadsApiRouter
+from openapi_server.db import engine
+from openapi_server.db_models import metadata
+
 
 app = FastAPI(
     title="Payload API",
     description="Given a flight-segment is a Flight number, Origin, Destination and Julian day of the year, And that payload consists of Passengers, Baggage and Cargo, When this service learns (aka creates/updates) flight-segments with actual values, Then this service can predict the payload of a flight-segment.  It supports the following operations: * Browse all flight-segments (aka actual past Payloads) * Create a flight-segment with an actual payload. * Update a flight-segment with another actual payload. * Get a Payload Prediction * Delete a Flight-Segment  Forthcoming Features: * Result pagination * Security (Auth&#39;n / Auth&#39;z) * Timestamps for create, update, estimate * Payload Predictions constrained by the aircraft&#39;s MTOW and MLW. * Missing flight-segments (aka Payloads) are interpolated.  We will use a simple **Payload** resource representation with the following properties: * ID * Flight * Origin * Destination * JulianDayOfYear * Passengers (count) * Baggage (weight) * Cargo (weight) ",
     version="v1.0.0",
 )
+
+
+@app.on_event("startup")
+async def on_startup():
+    # create DB tables if they don't exist
+    async with engine.begin() as conn:
+        await conn.run_sync(metadata.create_all)
+
+
+@app.on_event("shutdown")
+async def on_shutdown():
+    await engine.dispose()
+
 
 app.include_router(PayloadsApiRouter)

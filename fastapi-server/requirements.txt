@@ -35,3 +35,8 @@ uvicorn==0.13.4
 uvloop==0.21.0
 watchgod==0.7
 websockets==10.0
+
+# Async SQLAlchemy + drivers
+SQLAlchemy>=1.4
+asyncpg>=0.27.0
+aiosqlite>=0.18.0

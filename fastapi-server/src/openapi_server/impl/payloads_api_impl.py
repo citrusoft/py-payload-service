@@ -1,71 +1,119 @@
-from typing import Dict, List, Optional
+from typing import Optional
 
 from fastapi import HTTPException, Response
+from sqlalchemy import select, delete
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from openapi_server.apis.payloads_api_base import BasePayloadsApi
 from openapi_server.models.payload import Payload
 from openapi_server.models.get_all_payloads200_response import GetAllPayloads200Response
+from openapi_server.db import get_session
+from openapi_server.db_models import PayloadORM
 
 
 class PayloadsApiImpl(BasePayloadsApi):
-    """Simple in-memory implementation for the Payloads API.
-
-    This keeps data in a module-level dict for simplicity. It's suitable for
-    development and tests. The OpenAPI-generated server will import this
-    module automatically because it lives under `impl` and subclasses the
-    generated base class.
-    """
-
-    _store: Dict[int, Payload] = {}
-    _next_id: int = 1
-
     async def create_payload(self, payload: Optional[Payload]) -> Payload:
         if payload is None:
             raise HTTPException(status_code=400, detail="Missing payload")
 
-        # assign id if not provided
-        if payload.id is None:
-            payload.id = self._next_id
-            PayloadsApiImpl._next_id += 1
-        else:
-            # ensure next id is beyond any provided id
-            if payload.id >= PayloadsApiImpl._next_id:
-                PayloadsApiImpl._next_id = payload.id + 1
+        async for session in get_session():
+            orm = PayloadORM(
+                origin=payload.origin,
+                destination=payload.destination,
+                julian_do_y=payload.julian_do_y,
+                passengers=payload.passengers,
+                baggage=payload.baggage,
+                cargo=payload.cargo,
+            )
+            session.add(orm)
+            await session.commit()
+            await session.refresh(orm)
 
-        # save a copy in store
-        PayloadsApiImpl._store[int(payload.id)] = payload
-
-        return payload
+            return Payload.from_dict({
+                "id": orm.id,
+                "origin": orm.origin,
+                "destination": orm.destination,
+                "julianDoY": orm.julian_do_y,
+                "passengers": orm.passengers,
+                "baggage": orm.baggage,
+                "cargo": orm.cargo,
+            })
 
     async def get_all_payloads(self, offset: Optional[int], limit: Optional[int]) -> GetAllPayloads200Response:
         off = int(offset or 0)
         lim = int(limit or 5)
-        items: List[Payload] = list(PayloadsApiImpl._store.values())
-        total = len(items)
-        paged = items[off: off + lim]
+        async for session in get_session():
+            result = await session.execute(select(PayloadORM).offset(off).limit(lim))
+            items = result.scalars().all()
+            total_res = await session.execute(select(PayloadORM))
+            total = len(total_res.scalars().all())
 
-        return GetAllPayloads200Response(offset=off, limit=lim, total=total, data=paged)
+            data = []
+            for orm in items:
+                data.append(
+                    Payload.from_dict({
+                        "id": orm.id,
+                        "origin": orm.origin,
+                        "destination": orm.destination,
+                        "julianDoY": orm.julian_do_y,
+                        "passengers": orm.passengers,
+                        "baggage": orm.baggage,
+                        "cargo": orm.cargo,
+                    })
+                )
+
+            return GetAllPayloads200Response(offset=off, limit=lim, total=total, data=data)
 
     async def get_payload(self, id: int) -> Payload:
-        payload = PayloadsApiImpl._store.get(int(id))
-        if not payload:
-            raise HTTPException(status_code=404, detail="Payload not found")
-        return payload
+        async for session in get_session():
+            result = await session.get(PayloadORM, int(id))
+            if not result:
+                raise HTTPException(status_code=404, detail="Payload not found")
+            orm = result
+            return Payload.from_dict({
+                "id": orm.id,
+                "origin": orm.origin,
+                "destination": orm.destination,
+                "julianDoY": orm.julian_do_y,
+                "passengers": orm.passengers,
+                "baggage": orm.baggage,
+                "cargo": orm.cargo,
+            })
 
     async def update_payload(self, id: int, payload: Optional[Payload]) -> Payload:
         if payload is None:
             raise HTTPException(status_code=400, detail="Missing payload")
+        async for session in get_session():
+            orm = await session.get(PayloadORM, int(id))
+            if not orm:
+                raise HTTPException(status_code=404, detail="Payload not found")
 
-        if int(id) not in PayloadsApiImpl._store:
-            raise HTTPException(status_code=404, detail="Payload not found")
+            orm.origin = payload.origin
+            orm.destination = payload.destination
+            orm.julian_do_y = payload.julian_do_y
+            orm.passengers = payload.passengers
+            orm.baggage = payload.baggage
+            orm.cargo = payload.cargo
 
-        # keep id consistent with path
-        payload.id = int(id)
-        PayloadsApiImpl._store[int(id)] = payload
-        return payload
+            session.add(orm)
+            await session.commit()
+            await session.refresh(orm)
+
+            return Payload.from_dict({
+                "id": orm.id,
+                "origin": orm.origin,
+                "destination": orm.destination,
+                "julianDoY": orm.julian_do_y,
+                "passengers": orm.passengers,
+                "baggage": orm.baggage,
+                "cargo": orm.cargo,
+            })
 
     async def delete_payload(self, id: int) -> Response:
-        if int(id) not in PayloadsApiImpl._store:
-            raise HTTPException(status_code=404, detail="Payload not found")
-        del PayloadsApiImpl._store[int(id)]
-        return Response(status_code=204)
+        async for session in get_session():
+            orm = await session.get(PayloadORM, int(id))
+            if not orm:
+                raise HTTPException(status_code=404, detail="Payload not found")
+            await session.delete(orm)
+            await session.commit()
+            return Response(status_code=204)
