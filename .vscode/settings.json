@@ -1,7 +1,7 @@
 {
-  "python.envFile": "/Users/citrusoft/git/py-payload-service/.vscode/.env",
+  "python.envFile": "/Users/citrusoft/git/py-payload-service/.vscode/.env.example",
   "python.useEnvironmentsExtension": true,
   "python.defaultInterpreterPath": "/Users/citrusoft/git/py-payload-service/.venv/bin/python",
   "python.terminal.activateEnvironment": true,
-  "terminal.integrated.shellArgs.osx": ["--rcfile", "/Users/citrusoft/git/py-payload-service/.vscode/bashrc"]
+  "terminal.integrated.shellArgs.osx": ["--rcfile", "/Users/citrusoft/git/py-payload-service/.vscode/.bashrc"]
 }

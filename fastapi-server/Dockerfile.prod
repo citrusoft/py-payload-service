@@ -1,0 +1,23 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install dependencies
+RUN apt-get update && apt-get install -y build-essential
+RUN pip install --upgrade pip setuptools wheel
+
+# Use the generated requirements for the fastapi-server
+COPY requirements.txt /app/requirements.txt
+RUN find /app -print
+RUN pip install --no-cache-dir -r /app/requirements.txt
+
+# Copy the package source. Generator output is under `src`.
+COPY src /app/src
+
+# Ensure python can import the package
+ENV PYTHONPATH=/app/src
+
+EXPOSE 8080
+
+# Run the generated FastAPI app
+CMD ["uvicorn", "openapi_server.main:app", "--host", "0.0.0.0", "--port", "8080", "--log-level", "info"]
