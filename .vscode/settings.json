@@ -1,4 +1,7 @@
 {
-  "python.defaultInterpreterPath": ".venv3137/bin/python",
-  "python.terminal.activateEnvironment": true 
+  "python.envFile": "/Users/citrusoft/git/py-payload-service/.vscode/.env",
+  "python.useEnvironmentsExtension": true,
+  "python.defaultInterpreterPath": "/Users/citrusoft/git/py-payload-service/.venv/bin/python",
+  "python.terminal.activateEnvironment": true,
+  "terminal.integrated.shellArgs.osx": ["--rcfile", "/Users/citrusoft/git/py-payload-service/.vscode/bashrc"]
 }

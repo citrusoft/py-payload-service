@@ -1,32 +1,42 @@
 openapi: 3.0.3
 info:
   description: |
-    An API to manage transportation payload with the the following operations:
-    * List all Payloads
-    * Create a Payload (aka Route)
-    * Get Payload Estimate
-    * Update Payload with Actual
-    * Delete a Payload
+    Given a flight-segment is a Flight number, Origin, Destination and Julian day of the year,
+    And that payload consists of Passengers, Baggage and Cargo,
+    When this service learns (aka creates/updates) flight-segments with actual values,
+    Then this service can predict the payload of a flight-segment.
 
-    Features:
+    It supports the following operations:
+    * Browse all flight-segments (aka actual past Payloads)
+    * Create a flight-segment with an actual payload.
+    * Update a flight-segment with another actual payload.
+    * Get a Payload Prediction
+    * Delete a Flight-Segment
+
+    Forthcoming Features:
     * Result pagination
     * Security (Auth'n / Auth'z)
+    * Timestamps for create, update, estimate
+    * Payload Predictions constrained by the aircraft's MTOW and MLW.
+    * Missing flight-segments (aka Payloads) are interpolated.
 
     We will use a simple **Payload** resource representation with the following properties:
-    * ID (Route, aka Flight)
+    * ID
+    * Flight
+    * Origin
+    * Destination
+    * JulianDayOfYear
     * Passengers (count)
     * Baggage (weight)
     * Cargo (weight)
-    * EstimateDateTimestamp (optional)
-    * LastUpdateTimestamp (optional)
   title: Payload API
   version: v1.0.0
 servers:
 - description: Localhost environment
   url: http://localhost:8080/payload-api/v1.0.0
 tags:
-- description: Payload Estimator
-  name: Payloads
+- description: Predicts Payloads for flight-segments.
+  name: PayloadPredictor
 paths:
   /payloads:
     get:
@@ -355,17 +365,36 @@ components:
     Payload:
       example:
         passengers: 155
-        estimate4Timestamp: 2023-01-01T10:10:10Z
         baggage: 2510.5
-        lastUpdatedOn: 2023-01-01T10:10:10Z
+        origin: MLB
+        destination: MLB
         id: 1001
         cargo: 1220.2
+        julianDoY: 123
       properties:
         id:
           description: Payload identifier
           example: 1001
           readOnly: false
           title: id
+          type: integer
+        origin:
+          description: Origin airport IATA code.
+          example: MLB
+          readOnly: false
+          title: origin
+          type: string
+        destination:
+          description: Origin airport IATA code.
+          example: MLB
+          readOnly: false
+          title: destination
+          type: string
+        julianDoY:
+          description: The Julian Day of the Year (1-365/366).
+          example: 123
+          readOnly: false
+          title: julianDoY
           type: integer
         passengers:
           description: Passenger count.
@@ -384,20 +413,6 @@ components:
           format: double
           title: cargo
           type: number
-        estimate4Timestamp:
-          description: The time and date this estimate is for.
-          example: 2023-01-01T10:10:10Z
-          format: date-time
-          readOnly: true
-          title: estimate4Timestamp
-          type: string
-        lastUpdatedOn:
-          description: Timestamp of last estimate update
-          example: 2023-01-01T10:10:10Z
-          format: date-time
-          readOnly: true
-          title: lastUpdatedOn
-          type: string
       title: Payload
       type: object
     PayloadArray:
@@ -426,16 +441,18 @@ components:
         offset: 10
         data:
         - passengers: 155
-          estimate4Timestamp: 2023-01-01T10:10:10Z
           baggage: 2510.5
-          lastUpdatedOn: 2023-01-01T10:10:10Z
+          origin: MLB
+          destination: MLB
           id: 1001
           cargo: 1220.2
+          julianDoY: 123
         - passengers: 155
-          estimate4Timestamp: 2023-01-01T10:10:10Z
           baggage: 2510.5
-          lastUpdatedOn: 2023-01-01T10:10:10Z
+          origin: MLB
+          destination: MLB
           id: 1001
           cargo: 1220.2
+          julianDoY: 123
         limit: 5
       title: getAllPayloads_200_response
