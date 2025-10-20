@@ -12,6 +12,7 @@
 """  # noqa: E501
 
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from openapi_server.apis.payloads_api import router as PayloadsApiRouter
@@ -26,16 +27,19 @@ app = FastAPI(
 )
 
 
-@app.on_event("startup")
-async def on_startup():
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     # create DB tables if they don't exist
     async with engine.begin() as conn:
         await conn.run_sync(metadata.create_all)
+    try:
+        yield
+    finally:
+        await engine.dispose()
 
 
-@app.on_event("shutdown")
-async def on_shutdown():
-    await engine.dispose()
+app.router.lifespan_context = lifespan
 
 
 app.include_router(PayloadsApiRouter)
