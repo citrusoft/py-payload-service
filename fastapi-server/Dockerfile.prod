@@ -19,5 +19,14 @@ ENV PYTHONPATH=/app/src
 
 EXPOSE 8080
 
-# Run the generated FastAPI app
+# Copy Alembic migration files and entrypoint
+COPY alembic.ini /app/alembic.ini
+COPY alembic /app/alembic
+COPY docker-entrypoint.sh /app/docker-entrypoint.sh
+
+# Make entrypoint executable and run it as the container entrypoint. The script
+# will run migrations then exec the provided CMD (uvicorn by default).
+RUN chmod +x /app/docker-entrypoint.sh
+
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
 CMD ["uvicorn", "openapi_server.main:app", "--host", "0.0.0.0", "--port", "8080", "--log-level", "info"]
