@@ -1,4 +1,3 @@
-import asyncio
 import os
 from pathlib import Path
 
@@ -32,9 +31,6 @@ def client(tmp_path, monkeypatch):
     db_file = tmp_path / "test_payloads.db"
     database_url = _make_sqlite_url(db_file)
 
-    # import app modules after setting up a temp engine
-    import importlib
-
     # create engine and replace in openapi_server.db
     from sqlalchemy.ext.asyncio import create_async_engine
 
@@ -51,10 +47,12 @@ def client(tmp_path, monkeypatch):
 
     dbmod.async_session = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
-    # populate DB
-    asyncio.get_event_loop().run_until_complete(_create_db_and_insert(engine, dbmodels.metadata, dbmodels.PayloadORM))
+    # populate DB using asyncio.run to ensure an event loop exists
+    import asyncio as _asyncio
+    _asyncio.run(_create_db_and_insert(engine, dbmodels.metadata, dbmodels.PayloadORM))
 
-    # ensure importlib reloads main so startup uses patched engine
+    # ensure the db module is reloaded so startup uses patched engine
+    import importlib
     importlib.reload(dbmod)
 
     from openapi_server.main import app
