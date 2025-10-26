@@ -11,9 +11,7 @@ Requirements
 - Python 3.11+ and a virtual environment
 - docker (optional, for building image)
 
-## Quickstart
-Local dev and test instructions for the generated FastAPI server.
-### Install deps
+## Install Dependencies
 ```bash
 cd fastapi-server
 python3 -m venv .venv
@@ -21,13 +19,7 @@ source .venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
-### Run tests
-```bash
-pip3 install pytest
-cd fastapi-server
-# tests import the package from src automatically via tests/conftest.py
-PYTHONPATH=src pytest tests
-```
+## Quickstart
 ### Run the app locally with embedded SQLite
 ```bash
 cd fastapi-server
@@ -35,32 +27,14 @@ export DATABASE_URL=sqlite+aiosqlite:///./dev.db
 PYTHONPATH=src uvicorn openapi_server.main:app --host 0.0.0.0 --port 8080
 ```
 and open your browser at `http://localhost:8080/docs/` to see the docs.
+## Build
 ### Build Docker image
 ```bash
 cd fastapi-server
 docker build -f Dockerfile.prod -t payload-api:latest .
 ```
-### Run Docker Image in the Foreground
-```bash
-docker run --rm -p 8080:8080 payload-api:latest
-```
-### Run Docker detached with embedded SQLite
-```bash
-docker run -d --name payload-api \
-  --restart unless-stopped \
-  -p 8080:8080 \
-  payload-api:latest
-```
-### Run mounting a local SQLite file
-```bash
-docker run -d --name payload-api \
-  --restart unless-stopped \
-  -p 8080:8080 \
-  -v "$(pwd)/fastapi-server/dev_payloads.db:/app/dev.db" \
-  -e DATABASE_URL="sqlite+aiosqlite:///./dev.db" \
-  payload-api:latest
-```
-### start a local Postgres container
+## Postgres Database (for production-like environments)
+### Start a local Postgres container
 ```bash
 # start Postgres container
 # docker run -d --name payload-pg \
@@ -76,7 +50,7 @@ until docker exec payload-pg pg_isready -U payload_user >/dev/null 2>&1; do
 done
 echo "Postgres is ready"
 ```
-### creatin additional DB and users
+### Create DB and User
 ```bash
 # docker exec -it payloads-db psql -U postgres -c "CREATE DATABASE payloads_db;"
 # create a new DB (from host, using the container's psql)
@@ -100,6 +74,27 @@ docker exec -it payload-pg psql -U payload_user -d payload_db -c '\dt'
 # show schema for payloads
 docker exec -it payload-pg psql -U payload_user -d payload_db -c '\d+ payloads'
 ```
+
+### Run Docker Image in the Foreground with embedded SQLite
+```bash
+docker run --rm -p 8080:8080 payload-api:latest
+```
+### Run Docker detached with embedded SQLite
+```bash
+docker run -d --name payload-api \
+  --restart unless-stopped \
+  -p 8080:8080 \
+  payload-api:latest
+```
+### Run mounting a local SQLite file
+```bash
+docker run -d --name payload-api \
+  --restart unless-stopped \
+  -p 8080:8080 \
+  -v "$(pwd)/fastapi-server/dev_payloads.db:/app/dev.db" \
+  -e DATABASE_URL="sqlite+aiosqlite:///./dev.db" \
+  payload-api:latest
+```
 ### Run with a Postgres database (example)
 ```bash
 docker run -d --name payload-api \
@@ -108,9 +103,33 @@ docker run -d --name payload-api \
   payload-api:latest
 #   -e DATABASE_URL="postgresql+asyncpg://payload_user:secret@localhost:5432/payload_db" \
 ```
+
+## Logging
 ### Tail the logs
 ```bash
 docker logs -f payload-api
 ```
-### Browse to documentation
-GET http://localhost:8080/docs#/
+
+## Testing
+### Unit Tests
+```bash
+pip3 install pytest
+cd fastapi-server
+# tests import the package from src automatically via tests/conftest.py
+PYTHONPATH=src pytest tests
+```
+### TestClient Automation
+```bash
+PYTHONPATH=src python3 - <<'PY'
+from fastapi.testclient import TestClient
+from openapi_server.main import app
+client = TestClient(app)
+print(client.get('/payloads').status_code)
+print(client.get('/payloads').json())
+PY
+```
+### Smoke Test
+Browse the documentation
+```bash
+open -a "Google Chrome" "http://localhost:8080/docs#/"
+```
