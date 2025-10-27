@@ -54,7 +54,7 @@ jobs:
             --region "${REGION}" \
             --platform managed \
             --port 8080 \
-            --allow-unauthenticated=${{ github.event.inputs.allow_unauthenticated }} \
+            # --allow-unauthenticated=${{ github.event.inputs.allow_unauthenticated }} \
             # --set-env-vars "DATABASE_URL=${{ secrets.DATABASE_URL }}"
 
       - name: Print service URL
