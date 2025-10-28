@@ -128,8 +128,9 @@ print(client.get('/payloads').status_code)
 print(client.get('/payloads').json())
 PY
 ```
-### Smoke Test
+### Smoke Tests
 Browse the documentation
 ```bash
 open -a "Google Chrome" "http://localhost:8080/docs#/"
+curl -iL "http://localhost:8080/docs#/"
 ```
