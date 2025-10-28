@@ -5,15 +5,15 @@ on:
     inputs:
       image_tag:
         description: 'Optional image tag (defaults to github.sha)'
-        required: false
+        required: true
       allow_unauthenticated:
         description: 'Allow unauthenticated (public) access to the service'
         required: false
-        default: 'true'
+        default: '--allow-unauthenticated'
 
 jobs:
   deploy:
-    name: Build image and deploy to Cloud Run
+    name: Deploy image to Cloud Run
     runs-on: ubuntu-latest
 
     permissions:
@@ -24,7 +24,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Authenticate to Google Cloud
+      - name: Authenticate with Google Cloud
         uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
